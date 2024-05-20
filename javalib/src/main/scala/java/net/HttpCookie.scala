@@ -4,7 +4,131 @@ object HttpCookie {
 
   def domainMatches(domain: String, host: String): Boolean = ???
 
+  private[HttpCookie] class Potato(i: Int, s: String)
+
+  // starting at index i inspects the string in
+  // incrementing the index for every whitespace encountered,
+  // until no more whitespace can be found and then returns
+  // the new index
+  //
+  // If valid LWS could not be consumed - returns -1
+  private [HttpCookie] def consumeLws(i: Int, in: String): Int = {
+
+      var n = if (in.length() - 2 >= i && in.in.charAt(i) == '\n' && in.charAt(i+1) == '\r') {
+        i + 2
+      }
+
+      n = {
+        val char = in.charAt(n)
+        if (char == ' ' || char == '\t')
+          n + 1
+        else 
+          -1
+      }
+
+      if (n > 0) {
+
+        var done = n <= in.length()
+
+        while (!done) {
+          if (n == in.length()){
+            done = true 
+          } else {
+            val char = in.charAt(n) 
+            if (char == ' ' || char == '\t')
+              n += 1
+            else
+              done = true
+          }
+        }
+
+        n
+        
+      } else {
+        n
+      }
+ 
+    }
+
+   // Parses token returning it, or null otherwise
+   //
+   // token          = 1*<any CHAR except CTLs or separators>
+   // separators     = "(" | ")" | "<" | ">" | "@"
+   //                | "," | ";" | ":" | "\" | <">
+   //                | "/" | "[" | "]" | "?" | "="
+   //                | "{" | "}" | SP | HT
+   // CTL            = <any US-ASCII control character (octets 0 - 31) and DEL (127)>      
+  private[HttpCookie] def parseToken(i: Int, s: String): Potato = {
+
+    def check(char: Char): Boolean = {
+      char > 31 &&
+       char !=  "(" &&
+       char != ")"  &&
+       char != "<"  &&
+       char != ">"  &&
+       char != "@" &&
+       char != ","  &&
+       char != ";"  &&
+       char != ":"  &&
+       char != "\\"  &&
+       char != '"' &&
+       char != "/"  &&
+       char != "["  &&
+       char != "]"  &&
+       char != "?"  &&
+       char != "=" &&
+       char != "{"  &&
+       char != "}"  &&
+       char != ' '  &&
+       char != '\t' &&
+   }
+
+   if (i == s.length()) 
+     null
+   else
+     val first = s.charAt(i)
+
+     if (check(first)) {
+       var n = i + 1
+       var done = false
+
+       while(!done)
+         if (n == in.length()) {
+           done = true
+         } else {
+           val char = in.charAt(n)
+
+           if (check(char))
+             n += 1
+           else 
+             done = false
+         }
+       
+     } else {
+       null
+     }
+   
+    
+  }
+
+   // quoted-string  = ( <"> *(qdtext | quoted-pair ) <"> )
+   // qdtext         = <any TEXT except <">>
+   // TEXT           = <any OCTET except CTLs, but including LWS>
+   // quoted-pair    = "\" CHAR
+   // CHAR           = <any US-ASCII character (octets 0 - 127)>
+  def parseQuotedText(i: Int, in: String): Potato =  {
+    if (in.charAt(i) == '"') 
+    else {
+      null
+    }
+    
+  }
+    
+
+    
+
   def parse(header: String): java.util.List[HttpCookie] = {
+
 
     val cookies = new ArrayList[Cookie]()
 
@@ -38,13 +162,24 @@ object HttpCookie {
         var i = 0
         var done = false
 
-        while (!done && i < untrimmedPair.length()) {
-          if (c == '\t' || c == '\n' || c == 0x0b || c == '\f'
-                  || c == '\r' || c == ' ' || c == ',' || c == ';') {
-            i++;
-          } else {
-            done = true
-          }
+
+        while (!done) {
+
+          val afterPre = consumeLws(i, namelessHeader)
+          if (afterPre > 0)
+            i = afterPre
+
+          // NAME = VALUE
+          val name = parseToken(i, namelessHeader)
+
+          if (name == null)
+            throw new IllegalArgumentException("Illegal cookie name")
+
+          val valueToken = parseToken(i, namelessHeader)
+
+
+          
+          
         }
 
       
