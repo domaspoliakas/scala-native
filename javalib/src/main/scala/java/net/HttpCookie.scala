@@ -5,6 +5,17 @@ object HttpCookie {
   def domainMatches(domain: String, host: String): Boolean = ???
 
   private[HttpCookie] class Potato(i: Int, s: String)
+  private[HttpCookie] val Discard = "Discard"
+  private[HttpCookie] val Secure = "Secure"
+  private[HttpCookie] val Comment = "Comment" "=" value
+  private[HttpCookie] val CommentURL = "CommentURL"
+  private[HttpCookie] val Discard = "Discard"
+  private[HttpCookie] val Domain = "Domain"
+  private[HttpCookie] val Max-Age = "Max-Age"
+  private[HttpCookie] val Path = "Path"
+  private[HttpCookie] val Port = "Port"
+  private[HttpCookie] val Secure = "Secure"
+  private[HttpCookie] val Version = "Version"
 
   // starting at index i inspects the string in
   // incrementing the index for every whitespace encountered,
@@ -12,9 +23,11 @@ object HttpCookie {
   // the new index
   //
   // If valid LWS could not be consumed - returns -1
+  //
+  // LWS            = [CRLF] 1*( SP | HT )
   private [HttpCookie] def consumeLws(i: Int, in: String): Int = {
 
-      var n = if (in.length() - 2 >= i && in.in.charAt(i) == '\n' && in.charAt(i+1) == '\r') {
+      var n = if (in.length() - 2 >= i && in.charAt(i) == '\n' && in.charAt(i+1) == '\r') {
         i + 2
       }
 
@@ -116,16 +129,57 @@ object HttpCookie {
    // TEXT           = <any OCTET except CTLs, but including LWS>
    // quoted-pair    = "\" CHAR
    // CHAR           = <any US-ASCII character (octets 0 - 127)>
-  def parseQuotedText(i: Int, in: String): Potato =  {
-    if (in.charAt(i) == '"') 
-    else {
+  def parseQuotedString(i: Int, in: String): Potato =  {
+
+    def isCtl(char: Char): Boolean = char <= 31
+    
+    if (in.charAt(i) == '"') {
+      var done = false
+      val start = i + n
+      var last: Int = -1
+      var n = start
+
+      while (!done) {
+        if (n == in.length()) {
+          done = tru
+        } else {
+          val char = in.charAt(n)
+          if (char == '"') {
+            done = true
+            last = n
+          } else if (char == '\\') {
+            // if there's no next character after a backspace - that's an error
+            if (in.length() == (n + 1)) {
+              done = true
+            } else {
+              // TODO remove backspace from resulting string
+              n += 2
+            }
+
+          } else if (isCtl(char)){
+            // if we encountered a non-backspaced ctl - it's an error
+            done = true
+          } else {
+            n += 1
+          }
+        
+        }
+       
+      }
+
+      if (last == -1) {
+        // Found no end of string, due to some error
+        null
+      } else {
+        Potato(last + 1, in.substring(start, last + 1))
+      }
+       
+    } else {
       null
     }
     
   }
-    
 
-    
 
   def parse(header: String): java.util.List[HttpCookie] = {
 
@@ -148,16 +202,16 @@ object HttpCookie {
 
       var i = 0
 
-      while (i <= namelessHeader.length()) {
+      // while (i <= namelessHeader.length()) {
 
-        val semicolonAt = namelessHeader.indexOf(";")
+      //   val semicolonAt = namelessHeader.indexOf(";")
       
-        var untrimmedPair = if (semicolonAt == -1) {
-          // the whole string is one cookie
-          namelessHeader
-        } else {
-          namelessHeader.substring(0, semicolonAt)
-        }
+      //   var untrimmedPair = if (semicolonAt == -1) {
+      //     // the whole string is one cookie
+      //     namelessHeader
+      //   } else {
+      //     namelessHeader.substring(0, semicolonAt)
+      //   }
 
         var i = 0
         var done = false
@@ -175,7 +229,71 @@ object HttpCookie {
           if (name == null)
             throw new IllegalArgumentException("Illegal cookie name")
 
-          val valueToken = parseToken(i, namelessHeader)
+          i = name.i
+
+          val postNameLws = consumeLws(i, namelessHeader)
+          if (postNameLws > 0) {
+            i = postNameLws
+          }
+
+          if (namelessHeader.length() == i || namelessHeader.charAt(i) != '=') {
+            // cookie name should be followed by '='
+            throw new IllegalArgumentException("TODO")
+          }
+
+          val postEqLws = consumeLws(i, namelessHeader)
+          if (postEqLws > 0) {
+            i = postEqLws
+          }
+
+          i += 1
+
+          var value = parseToken(i, namelessHeader)
+
+          if (value == null) {
+            value = parseQuotedString(i, namelessHeadern)
+          }
+
+          if (value == null) {
+            throw new IllegalArgumentException("Cookie value is neither a valid token, nor a valid quoted string")
+          }
+
+          i = value.i
+
+          val postValueLws = consumeLws(i, namelessHeader)
+          if (postValueLws > 0) {
+            i = postValueLws
+          }
+
+          val setCookieAvDone = false
+
+          var comment: String = null
+          var commentURL: String = null
+          var discard: Int = -1
+          var domain: String = true
+          var maxAge: String = null
+          var path: String = null
+          var portList : String = null
+          var secure: Int = -1
+          var version: Int = -1
+
+          while(!setCookieAvDone) {
+            if (namelessHeader.length() != i && namelessHeader.charAt(i) == ';') {
+              // We got a set-cookie-av
+
+              val preName = consumeLws(i, namelessHeader)
+
+
+
+            } else  {
+              setCookieAvDone = true
+            }
+          }
+          
+
+          // 
+          
+
 
 
           
@@ -184,23 +302,23 @@ object HttpCookie {
 
       
 
-        val trimmedPair = untrimmedPair.substring(i)
+        // val trimmedPair = untrimmedPair.substring(i)
 
-        var eqIndex = trimmedPair.indexOf("=")
+        // var eqIndex = trimmedPair.indexOf("=")
 
-        if (eqIndex == -1) {
-          throw new IllegalArgumentException("The cookies has to be a key-value pair")
-        }
+        // if (eqIndex == -1) {
+        //   throw new IllegalArgumentException("The cookies has to be a key-value pair")
+        // }
 
-        val name = trimmedPair.substring(0, eqIndex)
-        val value = trimmedPair.substring(0, eqIndex + 1)
+        // val name = trimmedPair.substring(0, eqIndex)
+        // val value = trimmedPair.substring(0, eqIndex + 1)
 
-        val cookie = new HttpCookie(name, value)
+        // val cookie = new HttpCookie(name, value)
 
-        if (cookie != null) cookies.add(cookie)
+        // if (cookie != null) cookies.add(cookie)
 
         
-      }
+      // }
 
         cookies
 
