@@ -26,7 +26,7 @@ class HttpCookieTest {
     assertEquals(null, cookie.getPortlist())
     assertEquals(false, cookie.getSecure())
     assertEquals(1, cookie.getVersion)
-    
+
   }
 
   @Test
@@ -49,14 +49,17 @@ class HttpCookieTest {
     assertEquals("tomato", cookie.getValue())
     assertEquals("This is a comment", cookie.getComment())
     assertEquals(true, cookie.getDiscard())
-    assertEquals("https://definitely.real.website.cool/", cookie.getCommentURL())
+    assertEquals(
+      "https://definitely.real.website.cool/",
+      cookie.getCommentURL()
+    )
     assertEquals("definitely.real.webiste.cool", cookie.getDomain())
     assertEquals(123, cookie.getMaxAge())
     assertEquals("/potato/tomato", cookie.getPath())
     assertEquals("123 456 789", cookie.getPortlist())
     assertEquals(true, cookie.getSecure())
     assertEquals(1, cookie.getVersion)
-    
+
   }
 
   @Test

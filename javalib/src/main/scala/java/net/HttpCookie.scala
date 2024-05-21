@@ -7,20 +7,19 @@ object HttpCookie {
   def domainMatches(domain: String, host: String): Boolean = {
     val effectiveHost = if (host.indexOf('.') == -1) {
       host + ".local"
-    } else 
+    } else
       host
 
     val domainL = domain.toLowerCase
     val hostL = host.toLowerCase
 
     val exactMatch = domainL == hostL
-    // a host is a subdomain if it ends with the domain, and 
+    // a host is a subdomain if it ends with the domain, and
     // the character preceeding the domain suffix is a dot
     val hostIsSubdomain = hostL.endsWith("." + domainL)
 
     domainL == hostL || hostIsSubdomain
 
-    
   }
 
   private[HttpCookie] val Discard = "Discard"
@@ -44,12 +43,13 @@ object HttpCookie {
       cookies
     else {
 
-      val nameless = if (header.regionMatches(false, 0, "set-cookie2:", 0, 12)) {
-        header.substring(12)
-      } else if (header.regionMatches(false, 0, "set-cookie:", 0, 11))
-        header.substring(11)
-      else
-        header
+      val nameless =
+        if (header.regionMatches(false, 0, "set-cookie2:", 0, 12)) {
+          header.substring(12)
+        } else if (header.regionMatches(false, 0, "set-cookie:", 0, 11))
+          header.substring(11)
+        else
+          header
 
       val unprocessed = splitUnquotedAt(nameless, ',')
 
@@ -59,7 +59,7 @@ object HttpCookie {
         val eqIndex = kv.indexOf("=")
         val name = kv.substring(0, eqIndex)
         val value = kv.substring(eqIndex + 1)
-        
+
         val cookie = parseValue(name.trim(), unquote(value.trim()))
         if (cookie != null) {
           cookies.add(cookie)
@@ -68,11 +68,11 @@ object HttpCookie {
         i += 1
 
       }
-     
+
     }
 
     cookies
-    
+
   }
 
   // Splits the string at the given character,
@@ -80,7 +80,10 @@ object HttpCookie {
   // occurences of the separator inside quoted strings
   // won't trigger a split
   // backslash also escapes double quotes inside the string
-  private def splitUnquotedAt(in: String, separator: Char): java.util.List[String] = {
+  private def splitUnquotedAt(
+      in: String,
+      separator: Char
+  ): java.util.List[String] = {
 
     val res = new ArrayList[String]()
     if (in == "") {
@@ -98,7 +101,7 @@ object HttpCookie {
 
         if (char == separator && !inQuotes) {
           res.add(in.substring(begin, i))
-          begin = i+1
+          begin = i + 1
         } else if (char == '\\' && inQuotes && !escaping) {
           escaping = true
         } else if (char == '"' && inQuotes && !escaping) {
@@ -108,17 +111,14 @@ object HttpCookie {
         }
 
         i += 1
-        
+
       }
 
-
       res.add(in.substring(begin))
-      
+
       res
     }
   }
-
-
 
   private def unquote(in: String): String = {
     if (in.charAt(0) == '"' && in.charAt(in.length() - 1) == '"') {
@@ -151,41 +151,90 @@ object HttpCookie {
           unquote(prop.substring(sep + 1).trim())
         }
 
-        val propName = if (sep == -1)
-          prop
-        else {
-          prop.substring(0, sep).trim()
-        }
+        val propName =
+          if (sep == -1)
+            prop
+          else {
+            prop.substring(0, sep).trim()
+          }
 
-        if (propName.regionMatches(true, 0, Discard, 0,Discard.length())) {  
+        if (propName.regionMatches(true, 0, Discard, 0, Discard.length())) {
           cookie.setDiscard(true)
 
-        // We have to check commenturl before comment because comment matches commenturl
-        } else if (propName.regionMatches(true, 0, CommentURL, 0,CommentURL.length())) {  
+          // We have to check commenturl before comment because comment matches commenturl
+        } else if (propName.regionMatches(
+              true,
+              0,
+              CommentURL,
+              0,
+              CommentURL.length()
+            )) {
           cookie.setCommentURL(propValue)
-        } else if (propName.regionMatches(true, 0, Comment, 0,Comment.length())) {  
+        } else if (propName.regionMatches(
+              true,
+              0,
+              Comment,
+              0,
+              Comment.length()
+            )) {
           cookie.setComment(propValue)
-        } else if (propName.regionMatches(true, 0, Domain, 0,Domain.length())) {  
+        } else if (propName.regionMatches(
+              true,
+              0,
+              Domain,
+              0,
+              Domain.length()
+            )) {
           cookie.setDomain(propValue)
-        } else if (propName.regionMatches(true, 0, MaxAge, 0,MaxAge.length())) {
-          try { 
-            cookie.setMaxAge(java.lang.Long.valueOf(propValue)) 
-          } catch { 
-            case _: NumberFormatException => throw new IllegalArgumentException("Illegal cookie max-age attribute") 
+        } else if (propName.regionMatches(
+              true,
+              0,
+              MaxAge,
+              0,
+              MaxAge.length()
+            )) {
+          try {
+            cookie.setMaxAge(java.lang.Long.valueOf(propValue))
+          } catch {
+            case _: NumberFormatException =>
+              throw new IllegalArgumentException(
+                "Illegal cookie max-age attribute"
+              )
           }
-        } else if (propName.regionMatches(true, 0, Path, 0,Path.length())) {  
+        } else if (propName.regionMatches(true, 0, Path, 0, Path.length())) {
           cookie.setPath(propValue)
-        } else if (propName.regionMatches(true, 0, Port, 0,Port.length())) {  
+        } else if (propName.regionMatches(true, 0, Port, 0, Port.length())) {
           cookie.setPortlist(propValue)
-        } else if (propName.regionMatches(true, 0, Secure, 0,Secure.length())) {  
+        } else if (propName.regionMatches(
+              true,
+              0,
+              Secure,
+              0,
+              Secure.length()
+            )) {
           cookie.setSecure(true)
-        } else if (propName.regionMatches(true, 0, HttpOnly, 0,HttpOnly.length())) {  
+        } else if (propName.regionMatches(
+              true,
+              0,
+              HttpOnly,
+              0,
+              HttpOnly.length()
+            )) {
           cookie.setHttpOnly(true)
-        } else if (propName.regionMatches(true, 0, Version, 0,Version.length())) {
-          try { 
-            cookie.setVersion(java.lang.Integer.valueOf(propValue)) 
-          } catch { 
-            case _: NumberFormatException => throw new IllegalArgumentException("Illegal cookie max-age attribute") 
+        } else if (propName.regionMatches(
+              true,
+              0,
+              Version,
+              0,
+              Version.length()
+            )) {
+          try {
+            cookie.setVersion(java.lang.Integer.valueOf(propValue))
+          } catch {
+            case _: NumberFormatException =>
+              throw new IllegalArgumentException(
+                "Illegal cookie max-age attribute"
+              )
           }
         }
 
@@ -194,11 +243,9 @@ object HttpCookie {
       }
 
       cookie
-        
-    }
-   
 
-    
+    }
+
   }
 
   // NAME = attr
@@ -215,70 +262,68 @@ object HttpCookie {
       throw new IllegalArgumentException("Illegal cookie name")
 
     var i = 0
-    while(i < name.length()) {
+    while (i < name.length()) {
       val char = name.charAt(i)
-      if (
-        char < 32 || // CTL
-        char == 127 || // CTL
-        char == '(' ||
-        char == ')' ||
-        char == '<' ||
-        char == '>' ||
-        char == '@'||
-        char == ',' ||
-        char == ';' ||
-        char == ':' ||
-        char == '\\' ||
-        char == '"'||
-        char == '/' ||
-        char == '[' ||
-        char == ']' ||
-        char == '?' ||
-        char == '='||
-        char == '{' ||
-        char == '}' ||
-        char == ' ' ||
-        char == '\t'
-          ) {
-              throw new IllegalArgumentException("Illegal cookie name")
-            }
+      if (char < 32 || // CTL
+          char == 127 || // CTL
+          char == '(' ||
+          char == ')' ||
+          char == '<' ||
+          char == '>' ||
+          char == '@' ||
+          char == ',' ||
+          char == ';' ||
+          char == ':' ||
+          char == '\\' ||
+          char == '"' ||
+          char == '/' ||
+          char == '[' ||
+          char == ']' ||
+          char == '?' ||
+          char == '=' ||
+          char == '{' ||
+          char == '}' ||
+          char == ' ' ||
+          char == '\t') {
+        throw new IllegalArgumentException("Illegal cookie name")
+      }
 
       i += 1
     }
 
     name
 
-  }    
+  }
 
 }
 
-
-final class HttpCookie private(
-  private var _comment: String = null,
-  private var _commentURL: String = null,
-  private var _httpOnly: Boolean = false,
-  private var _discard: Boolean = false,
-  private var _domain: String = null,
-  private var _maxAge: Long = -1,
-  private var _name: String = null,
-  private var _path: String = null,
-  private var _portlist: String = null,
-  private var _secure: Boolean = false,
-  private var _value: String = null,
-  private var _version: Int = 1
+final class HttpCookie private (
+    private var _comment: String = null,
+    private var _commentURL: String = null,
+    private var _httpOnly: Boolean = false,
+    private var _discard: Boolean = false,
+    private var _domain: String = null,
+    private var _maxAge: Long = -1,
+    private var _name: String = null,
+    private var _path: String = null,
+    private var _portlist: String = null,
+    private var _secure: Boolean = false,
+    private var _value: String = null,
+    private var _version: Int = 1
 ) extends Cloneable {
 
   def this(name: String, value: String) = {
     this(
-      _name = (if (name.length() == 0)  {
-        throw new IllegalArgumentException("Illegal cookie name") 
-      } else 
-        HttpCookie.validateName(name)
-      ), 
-      _value = value)
+      _name =
+        (if (name.length() == 0) {
+           throw new IllegalArgumentException("Illegal cookie name")
+         } else
+           HttpCookie.validateName(name)),
+      _value = value
+    )
   }
 
-  override def equals(obj: Any): Boolean =  {
+  override def equals(obj: Any): Boolean = {
 
     if (obj.isInstanceOf[HttpCookie]) {
       val other = obj.asInstanceOf[HttpCookie]
@@ -287,20 +332,19 @@ final class HttpCookie private(
         this.isHttpOnly().equals(other.isHttpOnly()) &&
         this.getDiscard().equals(other.getDiscard()) &&
         this.getDomain().equals(other.getDomain()) &&
-      	this.getMaxAge().equals(other.getMaxAge()) &&
-      	this.getName().equals(other.getName()) &&
-      	this.getPath().equals(other.getPath()) &&
-      	this.getPortlist().equals(other.getPortlist()) &&
-      	this.getSecure().equals(other.getSecure()) &&
-      	this.getValue().equals(other.getValue()) &&
-      	this.getVersion().equals(other.getVersion())
+        this.getMaxAge().equals(other.getMaxAge()) &&
+        this.getName().equals(other.getName()) &&
+        this.getPath().equals(other.getPath()) &&
+        this.getPortlist().equals(other.getPortlist()) &&
+        this.getSecure().equals(other.getSecure()) &&
+        this.getValue().equals(other.getValue()) &&
+        this.getVersion().equals(other.getVersion())
     } else {
       false
     }
-    
-    
+
   }
-    
+
   def getComment(): String = this._comment
   def getCommentURL(): String = this._commentURL
   def getDiscard(): Boolean = this._discard
@@ -322,10 +366,9 @@ final class HttpCookie private(
   def setHttpOnly(httpOnly: Boolean): Unit = this._httpOnly = httpOnly
   def setMaxAge(expiry: Long): Unit = this._maxAge = expiry
   def setPath(uri: String): Unit = this._path = uri
-  def setPortlist(ports: String):  Unit = this._portlist = ports
-  def setSecure(flag: Boolean): Unit= this._secure = flag
-  def setValue(newValue: String):  Unit = this._value = newValue
-  def setVersion(v: Int):  Unit = this._version = v
-  override def toString():  String = _name + "=" + _value
+  def setPortlist(ports: String): Unit = this._portlist = ports
+  def setSecure(flag: Boolean): Unit = this._secure = flag
+  def setValue(newValue: String): Unit = this._value = newValue
+  def setVersion(v: Int): Unit = this._version = v
+  override def toString(): String = _name + "=" + _value
 }
-
